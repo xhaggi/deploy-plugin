@@ -111,9 +111,16 @@ public abstract class CargoContainerAdapter extends ContainerAdapter implements 
                 final ContainerFactory containerFactory = new DefaultContainerFactory(cl);
                 final DeployerFactory deployerFactory = new DefaultDeployerFactory(cl);
 
-                Container container = getContainer(configFactory, containerFactory, getContainerId());
+                ClassLoader pluginClassLoader = DeployPublisher.class.getClassLoader();
+                ClassLoader prevContextClassLoader = Thread.currentThread().getContextClassLoader();
+                try {
+                    Thread.currentThread().setContextClassLoader(pluginClassLoader);
+                    Container container = getContainer(configFactory, containerFactory, getContainerId());
+                    deploy(deployerFactory, listener, container, f, contextPath);
+                } finally {
+                    Thread.currentThread().setContextClassLoader(prevContextClassLoader);
+                }
 
-                deploy(deployerFactory, listener, container, f, contextPath);
                 return true;
             }
         });
