@@ -44,6 +44,7 @@
 		<cargo.version>1.4.8</cargo.version>
 		<jboss.version>7.2.0.Final</jboss.version>
 		<jboss.remoting.version>3.3.1.Final</jboss.remoting.version>
+		<wildfly.version>8.1.0.Final</wildfly.version>
 		<glassfish.version>3.1</glassfish.version>
 	</properties>
 
@@ -82,6 +83,11 @@
 					<groupId>commons-logging</groupId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+        <dependency>
+			<groupId>org.codehaus.cargo</groupId>
+			<artifactId>cargo-core-container-wildfly</artifactId>
+			<version>${cargo.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.codehaus.cargo</groupId>
