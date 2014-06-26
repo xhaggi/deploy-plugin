@@ -1,6 +1,8 @@
 package hudson.plugins.deploy.glassfish;
 
+import hudson.EnvVars;
 import hudson.plugins.deploy.PasswordProtectedAdapterCargo;
+
 import org.codehaus.cargo.container.Container;
 import org.codehaus.cargo.container.ContainerType;
 import org.codehaus.cargo.container.configuration.Configuration;
@@ -53,25 +55,22 @@ public abstract class GlassFishAdapter extends PasswordProtectedAdapterCargo {
      * {@inheritDoc}
      */
     @Override
-    protected Container getContainer(ConfigurationFactory configFactory, ContainerFactory containerFactory, String id) {
+    protected Container getContainer(ConfigurationFactory configFactory, ContainerFactory containerFactory, String id, EnvVars env) {
 
         if (hostname != null) {
-
-
             AbstractRuntimeConfiguration config = (AbstractRuntimeConfiguration) configFactory.createConfiguration(id, ContainerType.REMOTE, ConfigurationType.RUNTIME);
-            configure(config);
-            config.setProperty(RemotePropertySet.USERNAME, userName);
-            config.setProperty(RemotePropertySet.PASSWORD, getPassword());
-            config.setProperty(GeneralPropertySet.HOSTNAME, hostname);
+            configure(config, env);
+            config.setProperty(RemotePropertySet.USERNAME, env.expand(userName));
+            config.setProperty(RemotePropertySet.PASSWORD, env.expand(getPassword()));
+            config.setProperty(GeneralPropertySet.HOSTNAME, env.expand(hostname));
 
             AbstractRemoteContainer container = (AbstractRemoteContainer) containerFactory.createContainer(id, ContainerType.REMOTE, config);
 
             return container;
-
-
-        } else {
+        }
+        else {
             AbstractStandaloneLocalConfiguration config = (AbstractStandaloneLocalConfiguration) configFactory.createConfiguration(id, ContainerType.INSTALLED, ConfigurationType.STANDALONE, home);
-            configure(config);
+            configure(config, env);
 
             AbstractInstalledLocalContainer container = (AbstractInstalledLocalContainer) containerFactory.createContainer(id, ContainerType.INSTALLED, config);
 
@@ -80,7 +79,5 @@ public abstract class GlassFishAdapter extends PasswordProtectedAdapterCargo {
 
             return container;
         }
-
-
     }
 }

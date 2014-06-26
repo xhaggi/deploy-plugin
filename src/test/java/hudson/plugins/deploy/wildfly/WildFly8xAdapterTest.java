@@ -1,6 +1,7 @@
 package hudson.plugins.deploy.wildfly;
 
 import static org.junit.Assert.assertTrue;
+import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.StreamBuildListener;
 
@@ -46,7 +47,7 @@ public class WildFly8xAdapterTest {
         ConfigurationFactory configFactory = new DefaultConfigurationFactory();
         ContainerFactory containerFactory = new DefaultContainerFactory();
 
-        Container container = adapter.getContainer(configFactory, containerFactory, adapter.getContainerId());
+        Container container = adapter.getContainer(configFactory, containerFactory, adapter.getContainerId(), new EnvVars());
         Assert.assertNotNull(container);
 
         Assert.assertEquals("Not a wildfly 8x id.", "wildfly8x", container.getId());

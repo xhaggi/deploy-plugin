@@ -1,5 +1,6 @@
 package hudson.plugins.deploy;
 
+import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -11,6 +12,7 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
+
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
@@ -22,7 +24,7 @@ import java.util.List;
 
 /**
  * Deploys WAR to a container.
- * 
+ *
  * @author Kohsuke Kawaguchi
  */
 public class DeployPublisher extends Notifier implements Serializable {
@@ -42,9 +44,10 @@ public class DeployPublisher extends Notifier implements Serializable {
 
     @Override
     public boolean perform(AbstractBuild<?,?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+        EnvVars env = build.getEnvironment(listener);
         if (build.getResult().equals(Result.SUCCESS) || onFailure) {
                 for (FilePath warFile : build.getWorkspace().list(this.war)) {
-                if(!adapter.redeploy(warFile,contextPath,build,launcher,listener))
+                if(!adapter.redeploy(warFile, env.expand(contextPath), build, launcher, listener))
                     build.setResult(Result.FAILURE);
             }
         }

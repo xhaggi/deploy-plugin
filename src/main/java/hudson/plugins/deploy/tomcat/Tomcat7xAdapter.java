@@ -1,7 +1,9 @@
 package hudson.plugins.deploy.tomcat;
 
+import hudson.EnvVars;
 import hudson.Extension;
 import hudson.plugins.deploy.ContainerAdapterDescriptor;
+
 import org.codehaus.cargo.container.property.RemotePropertySet;
 import org.codehaus.cargo.container.configuration.Configuration;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -18,7 +20,7 @@ public class Tomcat7xAdapter extends TomcatAdapter {
 
     /**
      * Tomcat 7 support
-     * 
+     *
      * @param url Tomcat server location (for example: http://localhost:8080)
      * @param password tomcat manager password
      * @param userName tomcat manager username
@@ -27,9 +29,9 @@ public class Tomcat7xAdapter extends TomcatAdapter {
     public Tomcat7xAdapter(String url, String password, String userName) {
         super(url, password, userName);
     }
-    
-		public void configure(Configuration config) {
-        super.configure(config);
+
+    public void configure(Configuration config, EnvVars env) {
+        super.configure(config, env);
         try {
             URL _url = new URL(url + "/manager/text");
             config.setProperty(RemotePropertySet.URI,_url.toExternalForm());
@@ -45,7 +47,7 @@ public class Tomcat7xAdapter extends TomcatAdapter {
     public String getContainerId() {
         return "tomcat7x";
     }
-    
+
     @Extension
     public static final class DescriptorImpl extends ContainerAdapterDescriptor {
         public String getDisplayName() {

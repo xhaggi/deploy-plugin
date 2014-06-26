@@ -1,7 +1,9 @@
 package hudson.plugins.deploy.jboss;
 
+import hudson.EnvVars;
 import hudson.Extension;
 import hudson.plugins.deploy.ContainerAdapterDescriptor;
+
 import org.codehaus.cargo.container.Container;
 import org.codehaus.cargo.generic.ContainerFactory;
 import org.codehaus.cargo.generic.configuration.ConfigurationFactory;
@@ -12,8 +14,8 @@ import org.kohsuke.stapler.DataBoundConstructor;
  * @author Winston Prakash
  */
 public class JBoss6xAdapter extends JBoss5xAdapter {
-    
-    
+
+
     @DataBoundConstructor
     public JBoss6xAdapter(String url, String password, String userName, Integer rmiPort) {
         super(url, password, userName, rmiPort);
@@ -23,10 +25,10 @@ public class JBoss6xAdapter extends JBoss5xAdapter {
     public String getContainerId() {
         return "jboss6x";
     }
-    
+
      @Override
-    protected Container getContainer(ConfigurationFactory configFactory, ContainerFactory containerFactory, String id) {
-        return super.getContainer(configFactory, containerFactory, id);
+    protected Container getContainer(ConfigurationFactory configFactory, ContainerFactory containerFactory, String id, EnvVars env) {
+        return super.getContainer(configFactory, containerFactory, id, env);
     }
 
 

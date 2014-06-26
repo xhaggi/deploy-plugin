@@ -1,8 +1,10 @@
 package hudson.plugins.deploy.jboss;
 
 import static org.junit.Assert.assertTrue;
+import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.StreamBuildListener;
+
 import org.codehaus.cargo.container.Container;
 import org.codehaus.cargo.container.ContainerType;
 import org.codehaus.cargo.generic.ContainerFactory;
@@ -46,7 +48,7 @@ public class JBoss7xAdapterTest {
         ConfigurationFactory configFactory = new DefaultConfigurationFactory();
         ContainerFactory containerFactory = new DefaultContainerFactory();
 
-        Container container = adapter.getContainer(configFactory, containerFactory, adapter.getContainerId());
+        Container container = adapter.getContainer(configFactory, containerFactory, adapter.getContainerId(), new EnvVars());
         Assert.assertNotNull(container);
 
         Assert.assertEquals("Not a jboss 7x id.", "jboss7x", container.getId());

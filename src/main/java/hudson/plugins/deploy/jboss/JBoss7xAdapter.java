@@ -1,5 +1,6 @@
 package hudson.plugins.deploy.jboss;
 
+import hudson.EnvVars;
 import hudson.Extension;
 import hudson.plugins.deploy.ContainerAdapterDescriptor;
 
@@ -40,7 +41,7 @@ public class JBoss7xAdapter extends JBoss5xAdapter {
      * used in tests
      */
     @Override
-    protected Container getContainer(ConfigurationFactory configFactory, ContainerFactory containerFactory, String id) {
-        return super.getContainer(configFactory, containerFactory, id);
+    protected Container getContainer(ConfigurationFactory configFactory, ContainerFactory containerFactory, String id, EnvVars env) {
+        return super.getContainer(configFactory, containerFactory, id, env);
     }
 }
