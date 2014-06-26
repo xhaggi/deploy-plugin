@@ -63,7 +63,7 @@ public abstract class CargoContainerAdapter extends ContainerAdapter implements 
     protected void deploy(DeployerFactory deployerFactory, final BuildListener listener, Container container, File f, String contextPath) {
         Deployer deployer = deployerFactory.createDeployer(container);
 
-        listener.getLogger().println("Deploying " + f + " to container " + container.getName());
+        listener.getLogger().println(String.format("Deploying %s under context path %s to %s", f, contextPath, container.getName()));
         deployer.setLogger(new LoggerImpl(listener.getLogger()));
 
 
