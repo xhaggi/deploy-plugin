@@ -1,10 +1,10 @@
 package hudson.plugins.deploy.jboss;
 
-import static org.junit.Assert.assertTrue;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.StreamBuildListener;
-
+import java.io.File;
+import java.io.IOException;
 import org.codehaus.cargo.container.Container;
 import org.codehaus.cargo.container.ContainerType;
 import org.codehaus.cargo.generic.ContainerFactory;
@@ -12,12 +12,9 @@ import org.codehaus.cargo.generic.DefaultContainerFactory;
 import org.codehaus.cargo.generic.configuration.ConfigurationFactory;
 import org.codehaus.cargo.generic.configuration.DefaultConfigurationFactory;
 import org.junit.Assert;
+import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.io.File;
-import java.io.IOException;
-import java.lang.Exception;
 
 /**
  * @author christ66
@@ -28,11 +25,12 @@ public class JBoss7xAdapterTest {
     private static final String home = "http://localhost:8080";
     private static final String username = "jboss";
     private static final String password = "jboss";
+    private static final String portOffset = "100";
     private static int managementPort = 9999;
 
     @Before
     public void setup() {
-        adapter = new JBoss7xAdapter(home, password, username, managementPort);
+        adapter = new JBoss7xAdapter(home, password, username, portOffset, managementPort);
     }
 
     @Test
@@ -60,7 +58,7 @@ public class JBoss7xAdapterTest {
     	File f = new File(this.getClass().getClassLoader().getResource("simple.war").getFile());
         try {
             assertTrue("File: " + f.getAbsolutePath() + " does not exist", f.exists());
-            assertTrue(adapter.redeploy(new FilePath(f), null, null, null, new StreamBuildListener(System.out)));
+            assertTrue(adapter.redeploy(new FilePath(f), null, null, null, new StreamBuildListener(System.out), "redeploy"));
         }
         catch(Exception e) {
             throw e;

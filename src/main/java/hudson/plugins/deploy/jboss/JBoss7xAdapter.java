@@ -19,9 +19,20 @@ public class JBoss7xAdapter extends JBoss5xAdapter {
     public final Integer managementPort;
 
     @DataBoundConstructor
-    public JBoss7xAdapter(String url, String password, String userName, Integer managementPort) {
-        super(url, password, userName, managementPort);
-        this.managementPort = managementPort;
+    public JBoss7xAdapter(String url, String password, String userName, String portOffset, Integer managementPort) {
+        super(url, password, userName, portOffset, managementPort);
+        if(null == managementPort){
+            managementPort = 9999;
+        }
+        int offset = 0;
+        if(portOffset != null && !"".equals(portOffset)){
+            try{
+                offset = Integer.parseInt(portOffset);
+            }catch(NumberFormatException e){
+                offset = 0;
+            }
+        }
+        this.managementPort = managementPort + offset;
     }
 
     @Override

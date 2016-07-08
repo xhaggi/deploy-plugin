@@ -5,8 +5,65 @@
 	<parent>
 		<groupId>org.jenkins-ci.plugins</groupId>
 		<artifactId>plugin</artifactId>
-		<version>1.568</version>
+		<version>1.620</version>
 	</parent>
+        <repositories>
+            <repository>
+                <id>repo.jenkins-ci.org</id>
+                <url>http://repo.jenkins-ci.org/public/</url>
+            </repository>
+            <repository>
+                <id>repository.jboss.org_thirdparty-releases</id>
+                <name>JBoss.org third party releases repository</name>
+                <url>https://repository.jboss.org/nexus/content/repositories/thirdparty-releases</url>
+                <releases>
+                    <enabled>true</enabled>
+                </releases>
+                <snapshots>
+                    <enabled>false</enabled>
+                </snapshots>
+            </repository>
+            <repository>
+                <id>repository.jboss.org_thirdparty-uploads</id>
+                <name>JBoss.org third party uploads repository</name>
+                <url>https://repository.jboss.org/nexus/content/repositories/thirdparty-uploads</url>
+                <releases>
+                    <enabled>true</enabled>
+                </releases>
+                <snapshots>
+                    <enabled>false</enabled>
+                </snapshots>
+            </repository>
+        </repositories>
+
+        <pluginRepositories>
+            <pluginRepository>
+                <id>repo.jenkins-ci.org</id>
+                <url>http://repo.jenkins-ci.org/public/</url>
+            </pluginRepository>
+            <pluginRepository>
+                <id>repository.jboss.org_thirdparty-releases</id>
+                <name>JBoss.org third party releases repository</name>
+                <url>https://repository.jboss.org/nexus/content/repositories/thirdparty-releases</url>
+                <releases>
+                    <enabled>true</enabled>
+                </releases>
+                <snapshots>
+                    <enabled>false</enabled>
+                </snapshots>
+            </pluginRepository>
+            <pluginRepository>
+                <id>repository.jboss.org_thirdparty-uploads</id>
+                <name>JBoss.org third party uploads repository</name>
+                <url>https://repository.jboss.org/nexus/content/repositories/thirdparty-uploads</url>
+                <releases>
+                    <enabled>true</enabled>
+                </releases>
+                <snapshots>
+                    <enabled>false</enabled>
+                </snapshots>
+            </pluginRepository>
+        </pluginRepositories>
 
 	<artifactId>deploy</artifactId>
 	<version>1.11</version>
@@ -37,6 +94,10 @@
 			<id>leandro-freitas-softdevelop</id>
 			<name>Leandro Kersting de Freitas</name>
 		</developer>
+		<developer>
+			<id>dulyts</id>
+			<name>Jobb Gábor</name>
+		</developer>
 	</developers>
 
 	<properties>
@@ -47,9 +108,40 @@
 		<wildfly.version>8.1.0.Final</wildfly.version>
 		<glassfish.version>3.1</glassfish.version>
 	</properties>
+	<build>
+		<plugins>
+			<plugin>
+			  <groupId>org.codehaus.mojo</groupId>
+			  <artifactId>build-helper-maven-plugin</artifactId>
+			  <version>1.7</version>
+			  <executions>
+			    <execution>
+			      <id>add-eclipse-sources</id>
+			      <phase>generate-sources</phase>
+			      <goals>
+			          <goal>add-source</goal>
+			      </goals>
+			      <configuration>
+			      <sources>
+			          <!--<source>${basedir}/target/generated-sources/groovy-stubs/main</source>
+			          <source>${basedir}/target/generated-sources/localizer</source>
+			          <source>${basedir}/target/generated-sources/taglib-interface</source>-->
+			          <source>${basedir}/src/main/java/hudson/plugins/deploy/</source>
+			      </sources>
+			   </configuration>
+			  </execution>
+			  </executions>
+			</plugin>
+		</plugins>
+	</build>
 
 	<dependencies>
 		<dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>3.4</version>
+            </dependency>
+            <dependency>
 			<groupId>org.codehaus.cargo</groupId>
 			<artifactId>cargo-core-api-generic</artifactId>
 			<version>${cargo.version}</version>

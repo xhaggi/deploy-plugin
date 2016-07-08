@@ -7,12 +7,18 @@ import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import hudson.remoting.VirtualChannel;
-
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.codehaus.cargo.container.Container;
 import org.codehaus.cargo.container.ContainerType;
 import org.codehaus.cargo.container.configuration.Configuration;
 import org.codehaus.cargo.container.configuration.ConfigurationType;
+import org.codehaus.cargo.container.deployable.Deployable;
+import org.codehaus.cargo.container.deployable.EAR;
 import org.codehaus.cargo.container.deployable.WAR;
 import org.codehaus.cargo.container.deployer.Deployer;
 import org.codehaus.cargo.generic.ContainerFactory;
@@ -21,13 +27,8 @@ import org.codehaus.cargo.generic.configuration.ConfigurationFactory;
 import org.codehaus.cargo.generic.configuration.DefaultConfigurationFactory;
 import org.codehaus.cargo.generic.deployer.DefaultDeployerFactory;
 import org.codehaus.cargo.generic.deployer.DeployerFactory;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
-
-import org.apache.commons.io.FilenameUtils;
-import org.codehaus.cargo.container.deployable.EAR;
+import org.codehaus.cargo.util.CargoException;
+import org.jenkinsci.remoting.RoleChecker;
 
 /**
  * Provides container-specific glue code.
@@ -60,12 +61,17 @@ public abstract class CargoContainerAdapter extends ContainerAdapter implements 
         return containerFactory.createContainer(id, ContainerType.REMOTE, config);
     }
 
-    protected void deploy(DeployerFactory deployerFactory, final BuildListener listener, Container container, File f, String contextPath) {
+    protected void deploy(DeployerFactory deployerFactory, final BuildListener listener, Container container, File f, String contextPath, String context) {
         Deployer deployer = deployerFactory.createDeployer(container);
 
-        listener.getLogger().println(String.format("Deploying %s under context path %s to %s", f, contextPath, container.getName()));
+        if ("redeploy".equals(context)) {
+            listener.getLogger().println(String.format("ReDeploying %s under context path %s to %s", f, contextPath, container.getName()));
+        } else if ("deploy".equals(context)) {
+            listener.getLogger().println(String.format("Deploying %s under context path %s to %s", f, contextPath, container.getName()));
+        } else {
+            listener.getLogger().println(String.format("UnDeploying %s under context path %s to %s", f, contextPath, container.getName()));
+        }
         deployer.setLogger(new LoggerImpl(listener.getLogger()));
-
 
         String extension = FilenameUtils.getExtension(f.getAbsolutePath());
         if ("WAR".equalsIgnoreCase(extension)) {
@@ -73,12 +79,48 @@ public abstract class CargoContainerAdapter extends ContainerAdapter implements 
             if (!StringUtils.isEmpty(contextPath)) {
                 war.setContext(contextPath);
             }
-            deployer.redeploy(war);
+            //deployer.redeploy(war);
+            execute(listener, war, deployer, context);
         } else if ("EAR".equalsIgnoreCase(extension)) {
             EAR ear = createEAR(f);
-            deployer.redeploy(ear);
+            //deployer.redeploy(ear);
+            execute(listener, ear, deployer, context);
         } else {
             throw new RuntimeException("Extension File Error.");
+        }
+    }
+
+    private void execute(final BuildListener listener, Deployable deployable, Deployer deployer, String target) {
+        if ("redeploy".equals(target)) {
+            deployer.redeploy(deployable);
+        } else if ("deploy".equals(target)) {
+            try {
+                deployer.deploy(deployable);
+            } catch (CargoException ex) {
+                if (ex.getMessage().startsWith("Cannot deploy deployable")) {
+                    listener.getLogger().println("Nem deploy-olható:");
+                    ex.printStackTrace(listener.getLogger());
+                } else {
+                    throw ex;
+                }
+            }
+        } else if ("undeploy".equals(target)) {
+            try {
+                deployer.undeploy(deployable);
+            } catch (CargoException ex) {
+                if (ex.getMessage().startsWith("Cannot undeploy deployable")) {
+                    if (ExceptionUtils.getRootCauseMessage(ex) != null && ExceptionUtils.getRootCauseMessage(ex).matches(".*Management resource '.*' not found")) {
+                        listener.getLogger().println(deployable.getFile() + " már undeployolva van.");
+                    } else {
+                        listener.getLogger().println("Nem undeploy-olható:");
+                        ex.printStackTrace(listener.getLogger());
+                    }
+                } else {
+                    throw ex;
+                }
+            }
+        } else {
+            throw new RuntimeException("No more context option!");
         }
     }
 
@@ -102,14 +144,16 @@ public abstract class CargoContainerAdapter extends ContainerAdapter implements 
         return new EAR(deployableFile.getAbsolutePath());
     }
 
-    public boolean redeploy(FilePath war, final String contextPath, AbstractBuild<?, ?> build, Launcher launcher, final BuildListener listener) throws IOException, InterruptedException {
+    public boolean redeploy(FilePath war, final String contextPath, AbstractBuild<?, ?> build, Launcher launcher, final BuildListener listener, final String context) throws IOException, InterruptedException {
         EnvVars env = build.getEnvironment(listener);
         return war.act(new FileCallable<Boolean>() {
             private EnvVars env;
+
             public FileCallable<Boolean> withEnv(EnvVars env) {
                 this.env = env;
                 return this;
             }
+
             public Boolean invoke(File f, VirtualChannel channel) throws IOException {
                 if (!f.exists()) {
                     listener.error(Messages.DeployPublisher_NoSuchFile(f));
@@ -125,12 +169,17 @@ public abstract class CargoContainerAdapter extends ContainerAdapter implements 
                 try {
                     Thread.currentThread().setContextClassLoader(pluginClassLoader);
                     Container container = getContainer(configFactory, containerFactory, getContainerId(), this.env);
-                    deploy(deployerFactory, listener, container, f, contextPath);
+                    deploy(deployerFactory, listener, container, f, contextPath, context);
                 } finally {
                     Thread.currentThread().setContextClassLoader(prevContextClassLoader);
                 }
 
                 return true;
+            }
+
+            @Override
+            public void checkRoles(RoleChecker rc) throws SecurityException {
+                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
             }
         }.withEnv(env)
         );

@@ -1,13 +1,10 @@
 package hudson.plugins.deploy.wildfly;
 
-import static org.junit.Assert.assertTrue;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.StreamBuildListener;
-
 import java.io.File;
 import java.io.IOException;
-
 import org.codehaus.cargo.container.Container;
 import org.codehaus.cargo.container.ContainerType;
 import org.codehaus.cargo.generic.ContainerFactory;
@@ -15,6 +12,7 @@ import org.codehaus.cargo.generic.DefaultContainerFactory;
 import org.codehaus.cargo.generic.configuration.ConfigurationFactory;
 import org.codehaus.cargo.generic.configuration.DefaultConfigurationFactory;
 import org.junit.Assert;
+import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -59,7 +57,7 @@ public class WildFly8xAdapterTest {
     	File f = new File(this.getClass().getClassLoader().getResource("simple.war").getFile());
         try {
             assertTrue("File: " + f.getAbsolutePath() + " does not exist", f.exists());
-            assertTrue(adapter.redeploy(new FilePath(f), null, null, null, new StreamBuildListener(System.out)));
+            assertTrue(adapter.redeploy(new FilePath(f), null, null, null, new StreamBuildListener(System.out), "redeploy"));
         }
         catch(Exception e) {
             throw e;
