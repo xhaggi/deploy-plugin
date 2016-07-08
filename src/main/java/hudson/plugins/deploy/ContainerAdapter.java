@@ -8,6 +8,7 @@ import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import hudson.model.Describable;
 import hudson.model.Hudson;
+
 import java.io.IOException;
 
 /**
@@ -16,7 +17,7 @@ import java.io.IOException;
  * <h2>Persistence</h2>
  * <p>
  * Instances of these objects are persisted in projects' configuration XML via XStream.
- * 
+ *
  *
  * @author Kohsuke Kawaguchi
  */
@@ -32,7 +33,7 @@ public abstract class ContainerAdapter implements Describable<ContainerAdapter>,
         return (ContainerAdapterDescriptor)Hudson.getInstance().getDescriptor(getClass());
     }
 
-    public static DescriptorExtensionList<ContainerAdapter,ContainerAdapterDescriptor> all() {
-        return Hudson.getInstance().<ContainerAdapter,ContainerAdapterDescriptor>getDescriptorList(ContainerAdapter.class);
+    public static DescriptorExtensionList<ContainerAdapter, ContainerAdapterDescriptor> all() {
+        return Hudson.getInstance().<ContainerAdapter, ContainerAdapterDescriptor>getDescriptorList(ContainerAdapter.class);
     }
 }

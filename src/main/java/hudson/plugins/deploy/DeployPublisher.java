@@ -12,12 +12,14 @@ import hudson.plugins.deploy.gui.Radio;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Builder;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
@@ -25,7 +27,6 @@ import org.kohsuke.stapler.DataBoundConstructor;
  *
  * @author Kohsuke Kawaguchi
  */
-//public class DeployPublisher extends Notifier implements Serializable {
 public class DeployPublisher extends Builder implements Serializable {
     public final ContainerAdapter adapter;
     public final String contextPath;
@@ -44,13 +45,13 @@ public class DeployPublisher extends Builder implements Serializable {
     }
 
     @Override
-    public boolean perform(AbstractBuild<?,?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
+    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
         EnvVars env = build.getEnvironment(listener);
         //if (build.getResult().equals(Result.SUCCESS) || onFailure) {
-                for (FilePath warFile : build.getWorkspace().list(this.war)) {
-                    if (!adapter.redeploy(warFile, env.expand(contextPath), build, launcher, listener, radio.getValue()))
-                    build.setResult(Result.FAILURE);
-            }
+        for (FilePath warFile : build.getWorkspace().list(this.war)) {
+            if (!adapter.redeploy(warFile, env.expand(contextPath), build, launcher, listener, radio.getValue()))
+                build.setResult(Result.FAILURE);
+        }
         //}
 
         return true;
@@ -75,7 +76,7 @@ public class DeployPublisher extends Builder implements Serializable {
          */
         public List<ContainerAdapterDescriptor> getContainerAdapters() {
             List<ContainerAdapterDescriptor> r = new ArrayList<ContainerAdapterDescriptor>(ContainerAdapter.all());
-            Collections.sort(r,new Comparator<ContainerAdapterDescriptor>() {
+            Collections.sort(r, new Comparator<ContainerAdapterDescriptor>() {
                 public int compare(ContainerAdapterDescriptor o1, ContainerAdapterDescriptor o2) {
                     return o1.getDisplayName().compareTo(o2.getDisplayName());
                 }

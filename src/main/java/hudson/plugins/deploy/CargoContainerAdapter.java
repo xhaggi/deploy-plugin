@@ -7,9 +7,11 @@ import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import hudson.remoting.VirtualChannel;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -79,11 +81,9 @@ public abstract class CargoContainerAdapter extends ContainerAdapter implements 
             if (!StringUtils.isEmpty(contextPath)) {
                 war.setContext(contextPath);
             }
-            //deployer.redeploy(war);
             execute(listener, war, deployer, context);
         } else if ("EAR".equalsIgnoreCase(extension)) {
             EAR ear = createEAR(f);
-            //deployer.redeploy(ear);
             execute(listener, ear, deployer, context);
         } else {
             throw new RuntimeException("Extension File Error.");
@@ -98,7 +98,7 @@ public abstract class CargoContainerAdapter extends ContainerAdapter implements 
                 deployer.deploy(deployable);
             } catch (CargoException ex) {
                 if (ex.getMessage().startsWith("Cannot deploy deployable")) {
-                    listener.getLogger().println("Nem deploy-olható:");
+                    listener.getLogger().println("Cannot deploy, cause:");
                     ex.printStackTrace(listener.getLogger());
                 } else {
                     throw ex;
@@ -110,9 +110,9 @@ public abstract class CargoContainerAdapter extends ContainerAdapter implements 
             } catch (CargoException ex) {
                 if (ex.getMessage().startsWith("Cannot undeploy deployable")) {
                     if (ExceptionUtils.getRootCauseMessage(ex) != null && ExceptionUtils.getRootCauseMessage(ex).matches(".*Management resource '.*' not found")) {
-                        listener.getLogger().println(deployable.getFile() + " már undeployolva van.");
+                        listener.getLogger().println(deployable.getFile() + " deployed yet.");
                     } else {
-                        listener.getLogger().println("Nem undeploy-olható:");
+                        listener.getLogger().println("Cannot undeploy, cause:");
                         ex.printStackTrace(listener.getLogger());
                     }
                 } else {
@@ -181,7 +181,6 @@ public abstract class CargoContainerAdapter extends ContainerAdapter implements 
             public void checkRoles(RoleChecker rc) throws SecurityException {
                 throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
             }
-        }.withEnv(env)
-        );
+        } .withEnv(env));
     }
 }

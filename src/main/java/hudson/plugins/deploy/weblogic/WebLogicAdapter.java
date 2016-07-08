@@ -4,7 +4,9 @@ import hudson.EnvVars;
 import hudson.plugins.deploy.ContainerAdapterDescriptor;
 import hudson.plugins.deploy.DefaultCargoContainerAdapterImpl;
 import hudson.util.FormValidation;
+
 import java.io.File;
+
 import org.codehaus.cargo.container.Container;
 import org.codehaus.cargo.container.ContainerType;
 import org.codehaus.cargo.container.configuration.Configuration;
@@ -51,9 +53,9 @@ public abstract class WebLogicAdapter extends DefaultCargoContainerAdapterImpl {
 
     public static abstract class WebLogicAdapterDescriptor extends ContainerAdapterDescriptor {
         public FormValidation doCheckHome(@QueryParameter String value) {
-            if(new File(new File(value),"autodeploy").isDirectory())
+            if (new File(new File(value), "autodeploy").isDirectory())
                 return FormValidation.ok();
-            return FormValidation.warning(value+" doesn't appear to have the autodeploy subdirectory");
+            return FormValidation.warning(value + " doesn't appear to have the autodeploy subdirectory");
         }
     }
 }
