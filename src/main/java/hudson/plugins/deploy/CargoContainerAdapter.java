@@ -7,27 +7,28 @@ import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import hudson.remoting.VirtualChannel;
-
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.cargo.container.Container;
 import org.codehaus.cargo.container.ContainerType;
 import org.codehaus.cargo.container.configuration.Configuration;
 import org.codehaus.cargo.container.configuration.ConfigurationType;
+import org.codehaus.cargo.container.deployable.Deployable;
+import org.codehaus.cargo.container.deployable.EAR;
 import org.codehaus.cargo.container.deployable.WAR;
 import org.codehaus.cargo.container.deployer.Deployer;
+import org.codehaus.cargo.container.deployer.DeployerType;
 import org.codehaus.cargo.generic.ContainerFactory;
 import org.codehaus.cargo.generic.DefaultContainerFactory;
 import org.codehaus.cargo.generic.configuration.ConfigurationFactory;
 import org.codehaus.cargo.generic.configuration.DefaultConfigurationFactory;
 import org.codehaus.cargo.generic.deployer.DefaultDeployerFactory;
 import org.codehaus.cargo.generic.deployer.DeployerFactory;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
-
-import org.apache.commons.io.FilenameUtils;
-import org.codehaus.cargo.container.deployable.EAR;
+import org.codehaus.cargo.util.CargoException;
+import org.jenkinsci.remoting.RoleChecker;
 
 /**
  * Provides container-specific glue code.
@@ -40,6 +41,8 @@ import org.codehaus.cargo.container.deployable.EAR;
  */
 public abstract class CargoContainerAdapter extends ContainerAdapter implements Serializable {
 
+    private static final int MAX_NUMBER_OF_ATTEMPTS = 5;
+
     /**
      * Returns the container ID used by Cargo.
      *
@@ -51,6 +54,7 @@ public abstract class CargoContainerAdapter extends ContainerAdapter implements 
      * Fills in the {@link Configuration} object.
      *
      * @param config
+     * @param env
      */
     protected abstract void configure(Configuration config, EnvVars env);
 
@@ -60,26 +64,85 @@ public abstract class CargoContainerAdapter extends ContainerAdapter implements 
         return containerFactory.createContainer(id, ContainerType.REMOTE, config);
     }
 
-    protected void deploy(DeployerFactory deployerFactory, final BuildListener listener, Container container, File f, String contextPath) {
-        Deployer deployer = deployerFactory.createDeployer(container);
-
-        listener.getLogger().println(String.format("Deploying %s under context path %s to %s", f, contextPath, container.getName()));
-        deployer.setLogger(new LoggerImpl(listener.getLogger()));
-
-
+    protected void deploy(DeployerFactory deployerFactory, final BuildListener listener, Container container, File f, String contextPath, String context) {
+        Deployable deployable = null;
         String extension = FilenameUtils.getExtension(f.getAbsolutePath());
         if ("WAR".equalsIgnoreCase(extension)) {
             WAR war = createWAR(f);
             if (!StringUtils.isEmpty(contextPath)) {
                 war.setContext(contextPath);
             }
-            deployer.redeploy(war);
+            deployable = war;
         } else if ("EAR".equalsIgnoreCase(extension)) {
             EAR ear = createEAR(f);
-            deployer.redeploy(ear);
+            deployable = ear;
         } else {
             throw new RuntimeException("Extension File Error.");
         }
+        switch (context) {
+            case "redeploy":
+                listener.getLogger().println(String.format("ReDeploying %s under context path %s to %s", f, contextPath, container.getName()));
+                execute(listener, deployable, deployerFactory, container, context);
+                break;
+            case "deploy":
+                listener.getLogger().print(String.format("Deploying %s under context path %s to %s", f, contextPath, container.getName()));
+                execute(listener, deployable, deployerFactory, container, context);
+                break;
+            default:
+                listener.getLogger().print(String.format("UnDeploying %s under context path %s to %s", f, contextPath, container.getName()));
+                execute(listener, deployable, deployerFactory, container, context);
+                break;
+        }
+    }
+
+    private void execute(final BuildListener listener, Deployable deployable, DeployerFactory deployerFactory, Container container, String target) {
+        Deployer deployer = deployerFactory.createDeployer(container, DeployerType.REMOTE);
+        int numberOfAttempt = 0;
+        boolean inRunning = true;
+
+        try {
+            while (inRunning) {
+                try {
+                    switch (target) {
+                        case "redeploy":
+                            deployer.redeploy(deployable);
+                            break;
+                        case "deploy":
+                            deployer.deploy(deployable);
+                            break;
+                        case "undeploy":
+                            deployer.undeploy(deployable);
+                            break;
+                        default:
+                            throw new IllegalArgumentException("No more context option!");
+                    }
+                } catch (CargoException e) {
+                    numberOfAttempt++;
+                    listener.getLogger().print(".");
+                    if (numberOfAttempt >= MAX_NUMBER_OF_ATTEMPTS) {
+                        throw e;
+                    }
+                    deployer = initDeployer(deployerFactory, container, listener);
+                }
+                inRunning = false;
+            }
+        } catch (CargoException ex) {
+            if (ex.getMessage().startsWith("Cannot " + target + " deployable")) {
+                listener.getLogger().println("Nem " + target + "-olható:");
+                ex.printStackTrace(listener.getLogger());
+            } else {
+                throw ex;
+            }
+        }
+        if (numberOfAttempt > 0) {
+            listener.getLogger().println();
+        }
+    }
+
+    private Deployer initDeployer(DeployerFactory df, Container cont, final BuildListener listener) {
+        Deployer d = df.createDeployer(cont, DeployerType.REMOTE);
+        d.setLogger(new LoggerImpl(listener.getLogger()));
+        return d;
     }
 
     /**
@@ -102,14 +165,18 @@ public abstract class CargoContainerAdapter extends ContainerAdapter implements 
         return new EAR(deployableFile.getAbsolutePath());
     }
 
-    public boolean redeploy(FilePath war, final String contextPath, AbstractBuild<?, ?> build, Launcher launcher, final BuildListener listener) throws IOException, InterruptedException {
+    @Override
+    public boolean redeploy(FilePath war, final String contextPath, AbstractBuild<?, ?> build, Launcher launcher, final BuildListener listener, final String context) throws IOException, InterruptedException {
         EnvVars env = build.getEnvironment(listener);
         return war.act(new FileCallable<Boolean>() {
             private EnvVars env;
+
             public FileCallable<Boolean> withEnv(EnvVars env) {
                 this.env = env;
                 return this;
             }
+
+            @Override
             public Boolean invoke(File f, VirtualChannel channel) throws IOException {
                 if (!f.exists()) {
                     listener.error(Messages.DeployPublisher_NoSuchFile(f));
@@ -125,12 +192,17 @@ public abstract class CargoContainerAdapter extends ContainerAdapter implements 
                 try {
                     Thread.currentThread().setContextClassLoader(pluginClassLoader);
                     Container container = getContainer(configFactory, containerFactory, getContainerId(), this.env);
-                    deploy(deployerFactory, listener, container, f, contextPath);
+                    deploy(deployerFactory, listener, container, f, contextPath, context);
                 } finally {
                     Thread.currentThread().setContextClassLoader(prevContextClassLoader);
                 }
 
                 return true;
+            }
+
+            @Override
+            public void checkRoles(RoleChecker rc) throws SecurityException {
+                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
             }
         }.withEnv(env)
         );

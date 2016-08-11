@@ -3,7 +3,8 @@ package hudson.plugins.deploy.glassfish;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.StreamBuildListener;
-
+import java.io.File;
+import java.io.IOException;
 import org.codehaus.cargo.container.Container;
 import org.codehaus.cargo.container.glassfish.GlassFish3xInstalledLocalContainer;
 import org.codehaus.cargo.generic.ContainerFactory;
@@ -13,9 +14,6 @@ import org.codehaus.cargo.generic.configuration.DefaultConfigurationFactory;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.io.File;
-import java.io.IOException;
 
 /**
  * @author soudmaijer
@@ -79,13 +77,13 @@ public class GlassFish3xAdapterTest {
     //@Test
     public void testDeploy() throws IOException, InterruptedException {
 
-        adapter.redeploy(new FilePath(new File(this.getClass().getClassLoader().getResource("simple.war").getFile())), "contextPath", null, null, new StreamBuildListener(System.out));
+        adapter.redeploy(new FilePath(new File(this.getClass().getClassLoader().getResource("simple.war").getFile())), "contextPath", null, null, new StreamBuildListener(System.out), "redeploy");
     }
 
     //@Test
     public void testRemoteDeploy() throws IOException, InterruptedException {
 
 
-        remoteAdapter.redeploy(new FilePath(new File(this.getClass().getClassLoader().getResource("simple.war").getFile())), "contextPath", null, null, new StreamBuildListener(System.out));
+        remoteAdapter.redeploy(new FilePath(new File(this.getClass().getClassLoader().getResource("simple.war").getFile())), "contextPath", null, null, new StreamBuildListener(System.out), "redeploy");
     }
 }

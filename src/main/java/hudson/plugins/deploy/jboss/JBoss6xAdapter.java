@@ -17,8 +17,8 @@ public class JBoss6xAdapter extends JBoss5xAdapter {
 
 
     @DataBoundConstructor
-    public JBoss6xAdapter(String url, String password, String userName, Integer rmiPort) {
-        super(url, password, userName, rmiPort);
+    public JBoss6xAdapter(String url, String password, String userName, String portOffset, Integer rmiPort) {
+        super(url, password, userName, portOffset, rmiPort);
     }
 
     @Override

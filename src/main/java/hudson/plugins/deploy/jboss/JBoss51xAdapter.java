@@ -10,8 +10,8 @@ import org.kohsuke.stapler.DataBoundConstructor;
  */
 public class JBoss51xAdapter extends JBoss5xAdapter {
     @DataBoundConstructor
-    public JBoss51xAdapter(String url, String password, String userName, Integer rmiPort) {
-        super(url, password, userName, rmiPort);
+    public JBoss51xAdapter(String url, String password, String userName, String portOffset, Integer rmiPort) {
+        super(url, password, userName, portOffset, rmiPort);
     }
 
     @Override

@@ -4,16 +4,13 @@ import hudson.EnvVars;
 import hudson.plugins.deploy.ContainerAdapterDescriptor;
 import hudson.plugins.deploy.DefaultCargoContainerAdapterImpl;
 import hudson.util.FormValidation;
-
 import java.io.File;
-
 import org.codehaus.cargo.container.Container;
 import org.codehaus.cargo.container.ContainerType;
 import org.codehaus.cargo.container.configuration.Configuration;
 import org.codehaus.cargo.container.configuration.ConfigurationType;
 import org.codehaus.cargo.generic.ContainerFactory;
 import org.codehaus.cargo.generic.configuration.ConfigurationFactory;
-import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
 /**
@@ -36,7 +33,7 @@ public abstract class WebLogicAdapter extends DefaultCargoContainerAdapterImpl {
 
     public final String home;
 
-    @DataBoundConstructor
+    //@DataBoundConstructor
     public WebLogicAdapter(String home, String userName, String password, String server, Integer port) {
         this.home = home;
         this.userName = userName;

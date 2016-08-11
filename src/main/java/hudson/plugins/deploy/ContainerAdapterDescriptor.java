@@ -6,14 +6,16 @@ import org.kohsuke.stapler.QueryParameter;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
  * Base class for {@link ContainerAdapter} descriptors.
- * 
+ *
  * @author Kohsuke Kawaguchi
  */
 public abstract class ContainerAdapterDescriptor extends Descriptor<ContainerAdapter> {
+
     protected ContainerAdapterDescriptor(Class<? extends ContainerAdapter> clazz) {
         super(clazz);
     }
@@ -25,7 +27,7 @@ public abstract class ContainerAdapterDescriptor extends Descriptor<ContainerAda
         if (value != null && value.length() > 0) {
             try {
                 new URL(value);
-            } catch (Exception e) {
+            } catch (MalformedURLException e) {
                 return FormValidation.error(Messages.DeployPublisher_BadFormedUrl());
             }
         }

@@ -25,6 +25,12 @@
       </f:dropdownListBlock>
     </j:forEach>
   </f:dropdownList>
+  
+  <f:entry title="Context">
+    <f:radioBlock name="radio" title="Redeploy" value="redeploy" checked="${instance.radio.value== 'redeploy' || instance.radio.value==null}"/>
+    <f:radioBlock name="radio" title="Deploy" value="deploy" checked="${instance.radio.value== 'deploy'}"/>
+    <f:radioBlock name="radio" title="Undeploy" value="undeploy" checked="${instance.radio.value== 'undeploy'}"/>
+  </f:entry>  
 
   <f:entry title="${%Deploy on failure}" field="onFailure">
     <f:checkbox />

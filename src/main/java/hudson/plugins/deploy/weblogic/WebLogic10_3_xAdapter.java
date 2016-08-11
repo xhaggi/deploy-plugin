@@ -13,6 +13,15 @@ public class WebLogic10_3_xAdapter extends WebLogicAdapter {
         super(home, userName, password, server, port);
     }
 
+    /*@DataBoundConstructor
+     public WebLogic10_3_xAdapter(String home, String userName, String password, String server, Integer port) {
+     this.home = home;
+     this.userName = userName;
+     this.password = password;
+     this.server = server;
+     this.port = port;
+     }*/
+
     protected String getContainerId() {
         return "weblogic103x";
     }
